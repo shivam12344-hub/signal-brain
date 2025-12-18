@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Signal Brain</title>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; background:#0f172a; color:#e5e7eb; padding:20px; }
+    h1 { text-align:center; }
+    .toolbar { display:flex; gap:10px; justify-content:center; margin-bottom:16px; }
+    button { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; }
+    .BUY { background:#16a34a; color:#fff; }
+    .SELL { background:#dc2626; color:#fff; }
+    .WAIT { background:#374151; color:#fff; }
+    .card { background:#111827; padding:14px; margin:10px 0; border-radius:10px; }
+    .meta { color:#9ca3af; font-size:13px; }
+  </style>
+</head>
+<body>
+
+<h1>📊 Signal Brain</h1>
+
+<div class="toolbar">
+  <button onclick="setFilter('ALL')">ALL</button>
+  <button class="BUY" onclick="setFilter('BUY')">BUY</button>
+  <button class="SELL" onclick="setFilter('SELL')">SELL</button>
+  <button class="WAIT" onclick="setFilter('WAIT')">WAIT</button>
+</div>
+
+<div id="cards"></div>
+
+<script>
+let FILTER = "ALL";
+
+function setFilter(f){ FILTER = f; render(window._data || []); }
+
+async function load(){
+  const res = await fetch('/api/history');
+  const data = await res.json();
+  window._data = data;
+  render(data);
+}
+
+function render(data){
+  const root = document.getElementById('cards');
+  root.innerHTML = '';
+  data
+    .filter(s => FILTER==="ALL" || s.decision===FILTER)
+    .forEach(s=>{
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `
+        <h3>${s.decision} | ${s.final_bias}</h3>
+        <div class="meta">Conviction: ${s.conviction_score}</div>
+        <div class="meta">Time: ${s.timestamp}</div>
+      `;
+      root.appendChild(d);
+    });
+}
+
+load();
+setInterval(load, 30000); // auto-refresh every 30s
+</script>
+
+</body>
+</html>
